@@ -1,3 +1,6 @@
+import React, { useState } from 'react';
+import { Terminal, CheckCircle2, XCircle } from 'lucide-react';
+
 // Client-side regex evaluation fallback
 function evaluateClientRegex(title, description) {
   const fullText = (title + " " + description).toLowerCase();
