@@ -119,10 +119,27 @@ async def scheduled_loop():
         
         await asyncio.sleep(settings.POLL_INTERVAL_SECONDS)
 
+async def keep_alive_loop():
+    """Periodically pings the public endpoint every 10 minutes to prevent Render free instance from sleeping."""
+    if not settings.RENDER_EXTERNAL_URL:
+        return
+    logger.info(f"Keep-alive self-pinger initialized for {settings.RENDER_EXTERNAL_URL}")
+    import httpx
+    while True:
+        await asyncio.sleep(600)  # Every 10 minutes
+        try:
+            url = f"{settings.RENDER_EXTERNAL_URL}/api/status"
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                resp = await client.get(url)
+                logger.info(f"Keep-alive ping sent to {url} (Status: {resp.status_code})")
+        except Exception as e:
+            logger.debug(f"Keep-alive ping notice: {e}")
+
 @app.on_event("startup")
 async def startup_event():
     db.init_db()
     asyncio.create_task(scheduled_loop())
+    asyncio.create_task(keep_alive_loop())
 
 @app.get("/api/status")
 def get_status():

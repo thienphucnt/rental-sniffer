@@ -17,6 +17,9 @@ class Settings(BaseSettings):
     FB_COOKIE_C_USER: Optional[str] = os.getenv("FB_COOKIE_C_USER", "")
     FB_COOKIE_XS: Optional[str] = os.getenv("FB_COOKIE_XS", "")
 
+    # Cloud Keep-Alive
+    RENDER_EXTERNAL_URL: Optional[str] = os.getenv("RENDER_EXTERNAL_URL", "")
+
     # Proxy Configuration (Optional)
     PROXY_URL: Optional[str] = os.getenv("PROXY_URL", "")
 
