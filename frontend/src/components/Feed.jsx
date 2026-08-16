@@ -101,7 +101,7 @@ export default function Feed({ listings, matchesOnly, setMatchesOnly, onRefresh 
               <div className="tags-row">
                 {item.matches_target ? (
                   <span className="pill pill-highlight" style={{ display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
-                    <Zap size={14} /> FRESH MATCH (< 48H)
+                    <Zap size={14} /> FRESH MATCH (&lt; 48H)
                   </span>
                 ) : (
                   <span className="pill" style={{ color: 'var(--text-dim)' }}>
