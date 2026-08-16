@@ -214,6 +214,34 @@ async def test_notification():
         "detail": "Test alert dispatched to Discord channel!" if dc_sent else "Discord webhook failed. Please check DISCORD_WEBHOOK_URL."
     }
 
+# --- Serve Built React Frontend from FastAPI ---
+import os
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+
+# Check potential dist directories
+possible_dist_paths = [
+    os.path.join(os.path.dirname(os.path.dirname(__file__)), "frontend", "dist"),
+    os.path.join(os.getcwd(), "frontend", "dist"),
+    os.path.join(os.getcwd(), "dist")
+]
+
+dist_dir = next((p for p in possible_dist_paths if os.path.exists(p)), None)
+
+if dist_dir and os.path.exists(dist_dir):
+    assets_dir = os.path.join(dist_dir, "assets")
+    if os.path.exists(assets_dir):
+        app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
+
+    @app.get("/{full_path:path}")
+    async def serve_react_app(full_path: str):
+        if full_path.startswith("api/"):
+            raise HTTPException(status_code=404, detail="API route not found")
+        index_file = os.path.join(dist_dir, "index.html")
+        if os.path.exists(index_file):
+            return FileResponse(index_file)
+        raise HTTPException(status_code=404, detail="Frontend index.html not found")
+
 if __name__ == "__main__":
     import uvicorn
     if sys.platform == "win32":

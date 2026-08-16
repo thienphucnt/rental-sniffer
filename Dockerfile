@@ -1,3 +1,12 @@
+# Stage 1: Build React Frontend Dashboard
+FROM node:20-slim AS frontend-builder
+WORKDIR /frontend
+COPY frontend/package*.json ./
+RUN npm install
+COPY frontend/ ./
+RUN npm run build
+
+# Stage 2: Python Backend with Playwright, Chromium & Static Dashboard
 FROM python:3.11-slim
 
 # Install system dependencies for Playwright & Chromium
@@ -25,13 +34,16 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
-# Copy requirements and install
+# Install Python dependencies
 COPY backend/requirements.txt requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 RUN python -m playwright install chromium
 
-# Copy application source
+# Copy Backend Source
 COPY backend/ backend/
+
+# Copy Built Frontend from Stage 1
+COPY --from=frontend-builder /frontend/dist frontend/dist
 
 EXPOSE 8000
 
