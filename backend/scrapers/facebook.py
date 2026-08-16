@@ -62,7 +62,8 @@ class FacebookScraper(BaseScraper):
         async with httpx.AsyncClient(timeout=15.0) as client:
             for query in self.search_queries:
                 try:
-                    payload = {"q": f'site:facebook.com "Bông Sao" "{query}"'}
+                    # df=w restricts search engine to recent results from past days
+                    payload = {"q": f'site:facebook.com "Bông Sao" "{query}"', "df": "w"}
                     resp = await client.post(search_url, data=payload, headers=headers)
                     if resp.status_code == 200:
                         from bs4 import BeautifulSoup
@@ -77,6 +78,10 @@ class FacebookScraper(BaseScraper):
                                 title = title_elem.get_text(strip=True)
                                 url = url_elem.get_text(strip=True)
                                 description = desc_elem.get_text(strip=True) if desc_elem else title
+
+                                # REJECT PAST YEARS (2025, 2024, 2023, 2022)
+                                if any(yr in f"{title} {description}" for yr in ["2025", "2024", "2023", "2022"]):
+                                    continue
 
                                 if not url.startswith("http"):
                                     url = "https://" + url

@@ -42,6 +42,10 @@ class BaseScraper(abc.ABC):
         from backend.parser import is_fresh_listing
         is_fresh = is_fresh_listing(published_at)
 
+        # STRICT FRESHNESS FILTER: Discard any listing that is older than 48 hours or from past years
+        if not is_fresh:
+            return None
+
         # STRICT CRITERIA: A match MUST meet criteria AND be strictly fresh (< 48h)
         is_strict_match = bool(analysis["is_match"] and is_fresh)
 

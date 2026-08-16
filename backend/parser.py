@@ -43,16 +43,33 @@ def parse_relative_time(text: str) -> Optional[datetime]:
         except ValueError:
             pass
 
-    # MM/YYYY (e.g. tháng 08/2025 or 08/2026)
-    month_year_match = re.search(r'tháng\s*(\d{1,2})[\/\-](\d{4})', norm)
-    if month_year_match:
-        try:
-            month, year = map(int, month_year_match.groups())
-            return datetime(year, month, 1)
-        except ValueError:
-            pass
+    # DD Month YYYY (e.g. 2 April 2025, 8 Apr 2025, 15 Thg 8 2026)
+    month_map = {
+        'jan': 1, 'january': 1, 'thg 1': 1, 'tháng 1': 1,
+        'feb': 2, 'february': 2, 'thg 2': 2, 'tháng 2': 2,
+        'mar': 3, 'march': 3, 'thg 3': 3, 'tháng 3': 3,
+        'apr': 4, 'april': 4, 'thg 4': 4, 'tháng 4': 4,
+        'may': 5, 'thg 5': 5, 'tháng 5': 5,
+        'jun': 6, 'june': 6, 'thg 6': 6, 'tháng 6': 6,
+        'jul': 7, 'july': 7, 'thg 7': 7, 'tháng 7': 7,
+        'aug': 8, 'august': 8, 'thg 8': 8, 'tháng 8': 8,
+        'sep': 9, 'september': 9, 'thg 9': 9, 'tháng 9': 9,
+        'oct': 10, 'october': 10, 'thg 10': 10, 'tháng 10': 10,
+        'nov': 11, 'november': 11, 'thg 11': 11, 'tháng 11': 11,
+        'dec': 12, 'december': 12, 'thg 12': 12, 'tháng 12': 12
+    }
 
-    # Explicit year detection fallback (e.g. '2025', '2024')
+    named_date_match = re.search(r'(\d{1,2})\s+([a-zA-Z\s\d]+?)\s+(\d{4})', norm)
+    if named_date_match:
+        d_str, m_str, y_str = named_date_match.groups()
+        m_clean = m_str.strip().lower()
+        if m_clean in month_map:
+            try:
+                return datetime(int(y_str), month_map[m_clean], int(d_str))
+            except ValueError:
+                pass
+
+    # Explicit past year detection (e.g. '2025', '2024', '2023')
     year_match = re.search(r'\b(202[0-5])\b', norm)
     if year_match:
         return datetime(int(year_match.group(1)), 1, 1)
