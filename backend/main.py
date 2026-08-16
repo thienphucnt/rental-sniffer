@@ -217,30 +217,49 @@ async def test_notification():
 # --- Serve Built React Frontend from FastAPI ---
 import os
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, HTMLResponse
 
-# Check potential dist directories
-possible_dist_paths = [
-    os.path.join(os.path.dirname(os.path.dirname(__file__)), "frontend", "dist"),
-    os.path.join(os.getcwd(), "frontend", "dist"),
-    os.path.join(os.getcwd(), "dist")
-]
+def get_dist_dir():
+    possible_paths = [
+        os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "frontend", "dist"),
+        os.path.join(os.getcwd(), "frontend", "dist"),
+        os.path.join(os.getcwd(), "dist"),
+        "/app/frontend/dist"
+    ]
+    for p in possible_paths:
+        if os.path.exists(p) and os.path.exists(os.path.join(p, "index.html")):
+            return p
+    return None
 
-dist_dir = next((p for p in possible_dist_paths if os.path.exists(p)), None)
+dist_dir = get_dist_dir()
 
-if dist_dir and os.path.exists(dist_dir):
+if dist_dir:
     assets_dir = os.path.join(dist_dir, "assets")
     if os.path.exists(assets_dir):
         app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
 
-    @app.get("/{full_path:path}")
-    async def serve_react_app(full_path: str):
-        if full_path.startswith("api/"):
-            raise HTTPException(status_code=404, detail="API route not found")
-        index_file = os.path.join(dist_dir, "index.html")
+@app.get("/", response_class=HTMLResponse)
+async def serve_root():
+    d = get_dist_dir()
+    if d:
+        index_file = os.path.join(d, "index.html")
         if os.path.exists(index_file):
             return FileResponse(index_file)
-        raise HTTPException(status_code=404, detail="Frontend index.html not found")
+    return HTMLResponse("<h2>Bông Sao Rental Sniffer Backend API is Running!</h2><p>Frontend assets are compiling...</p>")
+
+@app.get("/{full_path:path}")
+async def serve_react_app(full_path: str):
+    if full_path.startswith("api/"):
+        raise HTTPException(status_code=404, detail="API route not found")
+    d = get_dist_dir()
+    if d:
+        file_path = os.path.join(d, full_path)
+        if os.path.exists(file_path) and os.path.isfile(file_path):
+            return FileResponse(file_path)
+        index_file = os.path.join(d, "index.html")
+        if os.path.exists(index_file):
+            return FileResponse(index_file)
+    raise HTTPException(status_code=404, detail="Page not found")
 
 if __name__ == "__main__":
     import uvicorn
