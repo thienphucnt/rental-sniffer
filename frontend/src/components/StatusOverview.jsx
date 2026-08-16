@@ -2,19 +2,37 @@ import React from 'react';
 import { Activity, Target, Database, Clock, RefreshCw } from 'lucide-react';
 
 export default function StatusOverview({ statusData, onRefresh, isScanning }) {
+  const isOnline = statusData && statusData.status !== 'DISCONNECTED';
+  const statusText = !isOnline
+    ? 'OFFLINE'
+    : isScanning || statusData.status === 'SCANNING'
+    ? 'SCANNING NOW'
+    : 'ONLINE (Listening)';
+
   return (
     <div className="stats-grid">
       <div className="card">
         <div className="card-header">
           <span>Engine Status</span>
-          <Activity size={18} color="var(--primary)" />
+          <Activity size={18} color={isOnline ? "var(--primary)" : "var(--danger)"} />
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <span className="pulse-indicator" />
-          <span className="card-value" style={{ fontSize: '1.4rem' }}>
-            {isScanning ? 'SCANNING NOW' : (statusData?.status || 'ONLINE')}
+          <span
+            className="pulse-indicator"
+            style={{
+              background: isOnline ? 'var(--primary)' : 'var(--danger)',
+              boxShadow: `0 0 10px ${isOnline ? 'var(--primary)' : 'var(--danger)'}`
+            }}
+          />
+          <span className="card-value" style={{ fontSize: '1.25rem', color: isOnline ? 'var(--text-main)' : 'var(--danger)' }}>
+            {statusText}
           </span>
         </div>
+        {!isOnline && (
+          <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
+            Run <code>python -m backend.main</code> in terminal
+          </p>
+        )}
       </div>
 
       <div className="card">

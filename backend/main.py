@@ -13,7 +13,7 @@ from backend.config import settings
 from backend.database import db
 from backend.models import Listing, ScraperRunLog, RegexTestRequest, RegexTestResponse
 from backend.parser import analyze_listing
-from backend.notification import dispatch_notifications, send_telegram_alert, send_discord_alert
+from backend.notification import dispatch_notifications, send_discord_alert
 from backend.scrapers.chotot import ChototScraper
 from backend.scrapers.batdongsan import BatdongsanScraper
 from backend.scrapers.phongtro123 import Phongtro123Scraper
@@ -208,12 +208,10 @@ async def test_notification():
         is_rental=True,
         matches_target=True
     )
-    tg_sent = await send_telegram_alert(sample_listing)
     dc_sent = await send_discord_alert(sample_listing)
     return {
-        "telegram_sent": tg_sent,
         "discord_sent": dc_sent,
-        "detail": "Sent test notifications. Check your Telegram/Discord channel."
+        "detail": "Test alert dispatched to Discord channel!" if dc_sent else "Discord webhook failed. Please check DISCORD_WEBHOOK_URL."
     }
 
 if __name__ == "__main__":
