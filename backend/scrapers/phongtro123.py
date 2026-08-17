@@ -11,7 +11,7 @@ class Phongtro123Scraper(BaseScraper):
         super().__init__("Phongtro123 & Thuecanho123")
         self.urls = [
             "https://phongtro123.com/cho-thue-can-ho-chung-cu-quan-8-ho-chi-minh?s=b%C3%B4ng+sao",
-            "https://thuecanho123.com/cho-thue-can-ho-chung-cu-quan-8-ho-chi-minh.html?s=b%C3%B4ng+sao"
+            "https://thuecanho123.com/ho-chi-minh/quan-8.html?s=b%C3%B4ng+sao"
         ]
 
     async def fetch_raw_listings(self) -> List[dict]:

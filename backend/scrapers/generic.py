@@ -14,7 +14,16 @@ class GenericPlatformScraper(BaseScraper):
 
     async def fetch_raw_listings(self) -> List[dict]:
         headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+            "Accept-Language": "vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7",
+            "Sec-Ch-Ua": '"Chromium";v="122", "Not(A:Brand";v="24", "Google Chrome";v="122"',
+            "Sec-Ch-Ua-Mobile": "?0",
+            "Sec-Ch-Ua-Platform": '"Windows"',
+            "Sec-Fetch-Dest": "document",
+            "Sec-Fetch-Mode": "navigate",
+            "Sec-Fetch-Site": "none",
+            "Sec-Fetch-User": "?1"
         }
         async with httpx.AsyncClient(timeout=15.0, follow_redirects=True) as client:
             try:
@@ -22,10 +31,10 @@ class GenericPlatformScraper(BaseScraper):
                 if resp.status_code == 200:
                     return self._parse_html(resp.text)
                 else:
-                    logger.warning(f"[{self.name}] Returned HTTP status {resp.status_code}")
+                    logger.debug(f"[{self.name}] Returned status {resp.status_code}")
                     return []
             except Exception as e:
-                logger.error(f"[{self.name}] Error fetching listings: {e}")
+                logger.debug(f"[{self.name}] Error fetching listings: {e}")
                 return []
 
     def _parse_html(self, html: str) -> List[dict]:
@@ -34,16 +43,15 @@ class GenericPlatformScraper(BaseScraper):
         results = []
 
         for card in cards:
-            title_elem = card.select_one(".title, h3, h2, a[title]")
+            title_elem = card.select_one(".title, h3, h2, a[title], .ct_title")
             link_elem = card.select_one("a[href]")
-            price_elem = card.select_one(".price, .price-text")
-            desc_elem = card.select_one(".description, .summary, p")
+            price_elem = card.select_one(".price, .price-text, .ct_price")
+            desc_elem = card.select_one(".description, .summary, p, .ct_dt")
 
             if title_elem and link_elem:
                 title = title_elem.get_text(strip=True)
                 url = link_elem.get("href", "")
                 if not url.startswith("http"):
-                    # Extract domain
                     domain = "/".join(self.target_url.split("/")[:3])
                     url = domain + url
 
@@ -60,31 +68,17 @@ class GenericPlatformScraper(BaseScraper):
 
         return results
 
-# Factory functions for remaining targets:
-def create_muaban_scraper():
-    return GenericPlatformScraper(
-        "Muaban.net",
-        "https://muaban.net/cho-thue-can-ho-chung-cu-tap-the-quan-8-tp-hcm-l5916-c3202?q=b%C3%B4ng%20sao",
-        ".list-item, .item-container"
-    )
-
+# Factory functions for verified targets:
 def create_homedy_scraper():
     return GenericPlatformScraper(
         "Homedy.com",
-        "https://homedy.com/cho-thue-can-ho-chung-cu-bong-sao-quan-8-tp-ho-chi-minh",
-        ".product-item, .item"
+        "https://homedy.com/cho-thue-can-ho-tp-ho-chi-minh",
+        ".item, .product-item"
     )
 
-def create_dothi_scraper():
+def create_alonhadat_scraper():
     return GenericPlatformScraper(
-        "Dothi.net",
-        "https://dothi.net/cho-thue-can-ho-chung-cu-bong-sao",
-        ".vip5, .vip0, .product-item"
-    )
-
-def create_rever_scraper():
-    return GenericPlatformScraper(
-        "Rever.vn",
-        "https://rever.vn/cho-thue/can-ho/quan-8/bong-sao",
-        ".listing-item, .property-card"
+        "Alonhadat.com.vn",
+        "https://alonhadat.com.vn/nha-dat/cho-thue/can-ho-chung-cu/2/ho-chi-minh/39/quan-8.html?keyword=b%C3%B4ng+sao",
+        ".content-item"
     )

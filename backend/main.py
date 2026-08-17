@@ -20,8 +20,7 @@ from backend.scrapers.phongtro123 import Phongtro123Scraper
 from backend.scrapers.mogi import MogiScraper
 from backend.scrapers.facebook import FacebookScraper
 from backend.scrapers.generic import (
-    create_muaban_scraper, create_homedy_scraper,
-    create_dothi_scraper, create_rever_scraper
+    create_homedy_scraper, create_alonhadat_scraper
 )
 
 # Logging configuration
@@ -49,10 +48,8 @@ scrapers_list = [
     Phongtro123Scraper(),
     MogiScraper(),
     FacebookScraper(),
-    create_muaban_scraper(),
     create_homedy_scraper(),
-    create_dothi_scraper(),
-    create_rever_scraper()
+    create_alonhadat_scraper()
 ]
 
 IS_RUNNING = False
